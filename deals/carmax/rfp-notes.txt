@@ -1,0 +1,8 @@
+CarMax RFP Notes
+================
+- RFP received 2025-01-15, response due 2025-02-15
+- Key requirements: AI-powered collections, Genesys integration, FDCPA compliance
+- Technical evaluation committee: 5 members including CTO and VP Engineering
+- Must support 500+ concurrent agent sessions
+- SOC 2 Type II certification required
+- Pilot scope: 50 agents, 3-month evaluation period

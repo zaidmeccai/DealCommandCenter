@@ -1,0 +1,7 @@
+CarMax Competitive Intel
+========================
+- Salient is the main competitor in this deal
+- Their pitch: lower cost, simpler integration
+- Our advantages: better AI accuracy (98% vs 92%), deeper Genesys integration
+- Key differentiator: real-time compliance monitoring
+- Decision criteria (ranked): 1. AI accuracy, 2. Compliance, 3. Integration, 4. Cost
