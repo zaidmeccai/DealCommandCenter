@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deal Command Center</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #242734;
+            --border: #2e3144;
+            --text: #e4e4e7;
+            --text-muted: #8b8d9e;
+            --accent: #6366f1;
+            --accent-soft: rgba(99,102,241,0.15);
+            --green: #22c55e;
+            --green-soft: rgba(34,197,94,0.15);
+            --yellow: #eab308;
+            --yellow-soft: rgba(234,179,8,0.15);
+            --red: #ef4444;
+            --red-soft: rgba(239,68,68,0.15);
+            --blue: #3b82f6;
+            --blue-soft: rgba(59,130,246,0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 { font-size: 20px; font-weight: 600; }
+        .header h1 span { color: var(--accent); }
+        .header-meta { color: var(--text-muted); font-size: 14px; }
+
+        /* Layout */
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
+
+        /* Stat cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .stat-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; }
+        .stat-card .sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+        .stat-card.green .value { color: var(--green); }
+        .stat-card.yellow .value { color: var(--yellow); }
+        .stat-card.red .value { color: var(--red); }
+        .stat-card.blue .value { color: var(--blue); }
+
+        /* Sections */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .section-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .section-header .icon { font-size: 18px; }
+        .section-body { padding: 16px 20px; }
+
+        /* Deal rows */
+        .deal-row {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: start;
+        }
+        .deal-row:last-child { border-bottom: none; }
+        .deal-name { font-weight: 600; font-size: 15px; }
+        .deal-meta { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+        .deal-amount { font-weight: 600; font-size: 15px; text-align: right; white-space: nowrap; }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-discovery { background: var(--blue-soft); color: var(--blue); }
+        .badge-technical { background: var(--accent-soft); color: var(--accent); }
+        .badge-proposal { background: var(--yellow-soft); color: var(--yellow); }
+        .badge-negotiation { background: var(--green-soft); color: var(--green); }
+        .badge-risk { background: var(--red-soft); color: var(--red); }
+
+        /* Action items */
+        .action-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            display: flex;
+            gap: 10px;
+        }
+        .action-item:last-child { border-bottom: none; }
+        .action-item .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--yellow);
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        .action-item .dot.overdue { background: var(--red); }
+        .action-item .account { color: var(--accent); font-weight: 500; }
+
+        /* AI Analysis block */
+        .ai-block {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-top: 12px;
+            font-size: 14px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Calendar input area */
+        .calendar-input {
+            width: 100%;
+            min-height: 120px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .calendar-input::placeholder { color: var(--text-muted); }
+        .calendar-input:focus { outline: none; border-color: var(--accent); }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+
+        /* Controls bar */
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .controls label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .controls input[type="checkbox"] { accent-color: var(--accent); }
+
+        /* Progress indicator */
+        .progress-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--accent-soft);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .progress-bar.active { display: flex; }
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Settings modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal h2 { margin-bottom: 16px; font-size: 18px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        .form-group input:focus { outline: none; border-color: var(--accent); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+        /* Call prep card */
+        .call-card {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .call-card:last-child { border-bottom: none; }
+        .call-card .call-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+        .call-card .call-time { color: var(--text-muted); font-size: 13px; }
+        .call-card .call-details { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+        .call-card .last-meeting { font-size: 13px; color: var(--text-muted); margin: 6px 0; }
+
+        /* Pipeline table */
+        .pipe-table { width: 100%; border-collapse: collapse; }
+        .pipe-table th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .pipe-table td {
+            padding: 10px 12px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .pipe-table tr:last-child td { border-bottom: none; }
+        .pipe-table .amount { text-align: right; font-weight: 600; }
+        .pipe-table .days-cell { text-align: center; }
+        .days-stale { color: var(--red); font-weight: 600; }
+
+        /* Text brief view */
+        .brief-text {
+            background: var(--surface2);
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 2px; margin-bottom: 0; }
+        .tab {
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; max-width: 400px; margin: 0 auto; }
+
+        /* Two-column layout for main content */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .container { padding: 16px; }
+            .header { padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div>
+        <h1><span>Deal</span> Command Center</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <span class="header-meta" id="dateDisplay">{{ today }}</span>
+        <button class="btn btn-sm btn-secondary" onclick="openSettings()">Settings</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="btn btn-primary" id="generateBtn" onclick="generate()">
+            Generate Morning Brief
+        </button>
+        <label>
+            <input type="checkbox" id="skipAi"> Skip AI analysis (faster)
+        </label>
+        <label>
+            <input type="checkbox" id="includeCalendar" checked> Include calendar
+        </label>
+    </div>
+
+    <!-- Calendar Input (collapsible) -->
+    <div class="section" id="calendarSection">
+        <div class="section-header">
+            <span class="icon">&#128197;</span> Today's Calendar
+        </div>
+        <div class="section-body">
+            <textarea class="calendar-input" id="calendarText" placeholder="Paste your calendar for today, e.g.:
+
+10:00 AM - CarMax Technical Review
+11:30 AM - GoodLeap Follow-up Call
+2:00 PM - Internal Pipeline Review
+3:30 PM - Harvey Executive Briefing"></textarea>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar" id="progressBar">
+        <div class="spinner"></div>
+        <span id="progressText">Generating your brief...</span>
+    </div>
+
+    {% if not has_creds %}
+    <!-- No credentials state -->
+    <div class="empty-state">
+        <div class="icon">&#128274;</div>
+        <h3>Setup Required</h3>
+        <p>Click <strong>Settings</strong> to add your Salesforce, Avoma, and Anthropic API credentials before generating a brief.</p>
+    </div>
+    {% endif %}
+
+    <!-- Dashboard content (hidden until generated) -->
+    <div id="dashboard" style="display:none;">
+
+        <!-- Stat Cards -->
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <!-- Tabs -->
+        <div style="border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+            <div class="tabs">
+                <div class="tab active" data-tab="visual">Dashboard</div>
+                <div class="tab" data-tab="calls">Today's Calls</div>
+                <div class="tab" data-tab="pipeline">Full Pipeline</div>
+                <div class="tab" data-tab="text">Text Brief</div>
+            </div>
+        </div>
+
+        <!-- Tab: Visual Dashboard -->
+        <div class="tab-content active" id="tab-visual">
+            <div class="grid-2">
+                <div>
+                    <!-- Follow-ups -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="icon">&#9989;</span> Follow-ups Due
+                        </div>
+                        <div class="section-body" id="followupsBody"></div>
+                    </div>
+
+                    <!-- At-Risk -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="icon">&#9888;&#65039;</span> At-Risk Deals
+                        </div>
+                        <div class="section-body" id="riskBody"></div>
+                    </div>
+                </div>
+                <div>
+                    <!-- Priority Focus -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="icon">&#127919;</span> Priority Focus
+                        </div>
+                        <div class="section-body" id="priorityBody"></div>
+                    </div>
+
+                    <!-- Errors -->
+                    <div class="section" id="errorsSection" style="display:none;">
+                        <div class="section-header" style="color:var(--yellow);">
+                            <span class="icon">&#9888;&#65039;</span> Warnings
+                        </div>
+                        <div class="section-body" id="errorsBody"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Today's Calls -->
+        <div class="tab-content" id="tab-calls">
+            <div id="callsBody"></div>
+        </div>
+
+        <!-- Tab: Full Pipeline -->
+        <div class="tab-content" id="tab-pipeline">
+            <div class="section">
+                <div class="section-body" style="overflow-x:auto;">
+                    <table class="pipe-table" id="pipelineTable">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Opportunity</th>
+                                <th>Stage</th>
+                                <th>Close Date</th>
+                                <th>Last Activity</th>
+                                <th style="text-align:right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pipelineTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Text Brief -->
+        <div class="tab-content" id="tab-text">
+            <div class="brief-text" id="briefText"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+        <h2>API Credentials</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+            Stored locally in <code>.env</code>. Leave blank to keep existing value.
+        </p>
+        <div class="form-group">
+            <label>Salesforce Username</label>
+            <input type="text" id="sf_username" placeholder="your_email@company.com">
+        </div>
+        <div class="form-group">
+            <label>Salesforce Password</label>
+            <input type="password" id="sf_password" placeholder="Enter to update">
+        </div>
+        <div class="form-group">
+            <label>Salesforce Security Token</label>
+            <input type="password" id="sf_token" placeholder="Enter to update">
+        </div>
+        <div class="form-group">
+            <label>My Salesforce Email (for opp filter)</label>
+            <input type="text" id="sf_email" placeholder="your_email@company.com">
+        </div>
+        <div class="form-group">
+            <label>Avoma API Key</label>
+            <input type="password" id="avoma_key" placeholder="Enter to update">
+        </div>
+        <div class="form-group">
+            <label>Anthropic API Key</label>
+            <input type="password" id="anthropic_key" placeholder="Enter to update">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+});
+
+function fmtAmount(n) {
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return '$' + Math.round(n / 1e3) + 'k';
+    return '$' + n.toLocaleString();
+}
+
+function stageBadge(stage) {
+    const cls = stage.toLowerCase().includes('discovery') ? 'badge-discovery'
+        : stage.toLowerCase().includes('technical') ? 'badge-technical'
+        : stage.toLowerCase().includes('proposal') ? 'badge-proposal'
+        : stage.toLowerCase().includes('negotiation') ? 'badge-negotiation'
+        : 'badge-discovery';
+    return `<span class="badge ${cls}">${stage}</span>`;
+}
+
+function generate() {
+    const btn = document.getElementById('generateBtn');
+    const bar = document.getElementById('progressBar');
+    const txt = document.getElementById('progressText');
+
+    btn.disabled = true;
+    bar.classList.add('active');
+    txt.textContent = 'Starting pipeline...';
+
+    const calendarText = document.getElementById('includeCalendar').checked
+        ? document.getElementById('calendarText').value
+        : '';
+
+    fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            calendar_text: calendarText,
+            skip_ai: document.getElementById('skipAi').checked,
+        })
+    }).then(r => r.json()).then(() => {
+        pollStatus();
+    }).catch(err => {
+        txt.textContent = 'Error: ' + err;
+        btn.disabled = false;
+    });
+}
+
+function pollStatus() {
+    const bar = document.getElementById('progressBar');
+    const txt = document.getElementById('progressText');
+    const btn = document.getElementById('generateBtn');
+
+    fetch('/api/status').then(r => r.json()).then(status => {
+        if (status.progress && status.progress.length > 0) {
+            txt.textContent = status.progress[status.progress.length - 1];
+        }
+        if (status.is_generating) {
+            setTimeout(pollStatus, 1000);
+        } else {
+            bar.classList.remove('active');
+            btn.disabled = false;
+            if (status.has_data) {
+                loadBrief();
+            }
+        }
+    });
+}
+
+function loadBrief() {
+    fetch('/api/brief').then(r => r.json()).then(resp => {
+        if (resp.error) return;
+        const data = resp.data;
+        const text = resp.text;
+
+        document.getElementById('dashboard').style.display = 'block';
+
+        // Stats
+        const s = data.summary;
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="stat-card green">
+                <div class="label">Total Pipeline</div>
+                <div class="value">${fmtAmount(s.total_pipeline)}</div>
+                <div class="sub">${s.deal_count} active deals</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="label">Closing This Month</div>
+                <div class="value">${fmtAmount(s.closing_this_month_value)}</div>
+                <div class="sub">${s.closing_this_month_count} deals</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Today's Calls</div>
+                <div class="value">${data.calendar_matches.length}</div>
+                <div class="sub">${data.calendar_matches.filter(c => c.matched).length} matched to deals</div>
+            </div>
+            <div class="stat-card ${s.at_risk_count > 0 ? 'red' : 'green'}">
+                <div class="label">At Risk</div>
+                <div class="value">${s.at_risk_count}</div>
+                <div class="sub">5+ days no activity</div>
+            </div>
+        `;
+
+        // Follow-ups
+        const followups = [];
+        data.opportunities.forEach(o => {
+            if (o.next_step) {
+                followups.push({ account: o.account_name, text: o.next_step, type: 'SF Next Step' });
+            }
+            o.pending_actions.forEach(a => {
+                followups.push({ account: o.account_name, text: a, type: 'Avoma' });
+            });
+        });
+        document.getElementById('followupsBody').innerHTML = followups.length === 0
+            ? '<div style="color:var(--text-muted);font-size:14px;">No pending follow-ups found.</div>'
+            : followups.slice(0, 10).map(f => `
+                <div class="action-item">
+                    <div class="dot"></div>
+                    <div><span class="account">${f.account}</span>: ${f.text} <span style="color:var(--text-muted);font-size:12px;">(${f.type})</span></div>
+                </div>
+            `).join('');
+
+        // At-Risk
+        const riskHtml = data.at_risk.length === 0
+            ? '<div style="color:var(--green);font-size:14px;">All deals have recent activity!</div>'
+            : data.at_risk.map(o => `
+                <div class="deal-row">
+                    <div>
+                        <div class="deal-name">${o.account_name}</div>
+                        <div class="deal-meta">
+                            ${stageBadge(o.stage)} &middot;
+                            <span class="days-stale">${o.days_since_last_activity}d since last touch</span>
+                            ${o.close_date ? ' &middot; Closes ' + o.close_date : ''}
+                        </div>
+                        ${o.next_step ? '<div class="deal-meta">Next step: ' + o.next_step + '</div>' : ''}
+                    </div>
+                    <div class="deal-amount">${fmtAmount(o.amount)}</div>
+                </div>
+            `).join('');
+        document.getElementById('riskBody').innerHTML = riskHtml
+            + (data.risk_analysis ? `<div class="ai-block">${escapeHtml(data.risk_analysis)}</div>` : '');
+
+        // Priority
+        document.getElementById('priorityBody').innerHTML = data.priority_analysis
+            ? `<div class="ai-block">${escapeHtml(data.priority_analysis)}</div>`
+            : '<div style="color:var(--text-muted);font-size:14px;">Generate with AI enabled for priority recommendations.</div>';
+
+        // Calls
+        const callsHtml = data.calendar_matches.length === 0
+            ? '<div class="empty-state" style="padding:40px"><h3>No calendar entries</h3><p>Paste your calendar above and regenerate to see call prep.</p></div>'
+            : data.calendar_matches.map(c => {
+                const o = c.matched;
+                if (!o) return `
+                    <div class="call-card">
+                        <div class="call-header">
+                            <div class="deal-name" style="color:var(--text-muted)">${c.entry}</div>
+                            <span class="badge" style="background:var(--surface2);color:var(--text-muted);">No match</span>
+                        </div>
+                    </div>`;
+                return `
+                    <div class="call-card">
+                        <div class="call-header">
+                            <div>
+                                <div class="deal-name">${o.account_name} &mdash; ${o.name}</div>
+                                <div class="call-details">${stageBadge(o.stage)} &middot; ${fmtAmount(o.amount)} &middot; Closes ${o.close_date || 'TBD'}</div>
+                            </div>
+                            <div class="call-time">${c.entry}</div>
+                        </div>
+                        ${o.last_meeting_summary ? '<div class="last-meeting">Last meeting: ' + escapeHtml(o.last_meeting_summary) + '</div>' : ''}
+                        ${o.pending_actions.length > 0 ? '<div style="margin:8px 0;font-size:13px;"><strong>Pending from me:</strong><ul style="margin:4px 0 0 18px;">' + o.pending_actions.map(a => '<li>' + escapeHtml(a) + '</li>').join('') + '</ul></div>' : ''}
+                        ${c.prep ? '<div class="ai-block">' + escapeHtml(c.prep) + '</div>' : ''}
+                    </div>`;
+            }).join('');
+        document.getElementById('callsBody').innerHTML = callsHtml;
+
+        // Pipeline table
+        document.getElementById('pipelineTableBody').innerHTML = data.opportunities.map(o => `
+            <tr>
+                <td><strong>${o.account_name}</strong></td>
+                <td>${o.name}</td>
+                <td>${stageBadge(o.stage)}</td>
+                <td>${o.close_date || '&mdash;'}</td>
+                <td class="days-cell">${o.days_since_last_activity !== null
+                    ? (o.days_since_last_activity >= 5
+                        ? '<span class="days-stale">' + o.days_since_last_activity + 'd</span>'
+                        : o.days_since_last_activity + 'd')
+                    : '&mdash;'}</td>
+                <td class="amount">${fmtAmount(o.amount)}</td>
+            </tr>
+        `).join('');
+
+        // Text brief
+        document.getElementById('briefText').textContent = text;
+
+        // Errors
+        if (data.errors.length > 0) {
+            document.getElementById('errorsSection').style.display = 'block';
+            document.getElementById('errorsBody').innerHTML = data.errors.map(e =>
+                `<div style="font-size:14px;color:var(--yellow);margin-bottom:6px;">${escapeHtml(e)}</div>`
+            ).join('');
+        } else {
+            document.getElementById('errorsSection').style.display = 'none';
+        }
+    });
+}
+
+function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+// Settings
+function openSettings() {
+    document.getElementById('settingsModal').classList.add('active');
+    fetch('/api/settings').then(r => r.json()).then(data => {
+        document.getElementById('sf_username').placeholder = data.SALESFORCE_USERNAME || 'Not set';
+        document.getElementById('sf_email').placeholder = data.MY_SALESFORCE_EMAIL || 'Not set';
+    });
+}
+function closeSettings() {
+    document.getElementById('settingsModal').classList.remove('active');
+}
+function saveSettings() {
+    const payload = {};
+    const fields = {
+        'sf_username': 'SALESFORCE_USERNAME',
+        'sf_password': 'SALESFORCE_PASSWORD',
+        'sf_token': 'SALESFORCE_SECURITY_TOKEN',
+        'sf_email': 'MY_SALESFORCE_EMAIL',
+        'avoma_key': 'AVOMA_API_KEY',
+        'anthropic_key': 'ANTHROPIC_API_KEY',
+    };
+    for (const [inputId, envKey] of Object.entries(fields)) {
+        const val = document.getElementById(inputId).value.trim();
+        if (val) payload[envKey] = val;
+    }
+    fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    }).then(r => r.json()).then(() => {
+        closeSettings();
+        // Clear inputs
+        Object.keys(fields).forEach(id => document.getElementById(id).value = '');
+        window.location.reload();
+    });
+}
+
+// Close modal on overlay click
+document.getElementById('settingsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSettings();
+});
+
+// On load: check if we already have a brief
+fetch('/api/status').then(r => r.json()).then(status => {
+    if (status.has_data) loadBrief();
+    if (status.is_generating) {
+        document.getElementById('generateBtn').disabled = true;
+        document.getElementById('progressBar').classList.add('active');
+        pollStatus();
+    }
+});
+</script>
+</body>
+</html>

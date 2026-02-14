@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount .env for credentials (don't bake into image)
+      - ./.env:/app/.env:ro
+      # Persist deal folders, output, and cache
+      - ./deals:/app/deals
+      - ./output:/app/output
+      - ./avoma_cache:/app/avoma_cache
+    environment:
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-change-me-in-production}
+    restart: unless-stopped

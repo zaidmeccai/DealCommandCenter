@@ -250,6 +250,12 @@ Examples:
     parser.add_argument(
         "--clear-cache", action="store_true", help="Clear Avoma transcript cache"
     )
+    parser.add_argument(
+        "--web", action="store_true", help="Start web dashboard instead of CLI"
+    )
+    parser.add_argument(
+        "--port", type=int, default=5000, help="Port for web dashboard (default: 5000)"
+    )
 
     args = parser.parse_args()
 
@@ -264,6 +270,11 @@ Examples:
         from .credentials import interactive_setup
         interactive_setup()
         print("\nSetup complete. Run again without --setup to generate your brief.")
+        return
+
+    if args.web:
+        from .web import run_server
+        run_server(port=args.port, debug=args.verbose)
         return
 
     try:
